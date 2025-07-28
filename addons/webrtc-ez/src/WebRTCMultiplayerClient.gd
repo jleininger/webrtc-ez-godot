@@ -33,7 +33,7 @@ func _joined_lobby(id: int, use_mesh: bool, lobbyId: String):
 	multiplayer.multiplayer_peer = rtc_mp
 
 func _peer_connected(peer_id: int):
-	#Global.single_player = false
+	NetworkManager.single_player = false
 	_create_peer(peer_id)
 	
 func _create_peer(id: int):

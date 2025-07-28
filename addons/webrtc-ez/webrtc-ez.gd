@@ -1,11 +1,11 @@
 @tool
 extends EditorPlugin
 
-const AUTOLOAD_NAME = "Globals"
+const AUTOLOAD_NAME = "NetworkManager"
 
 
 func _enable_plugin() -> void:
-	add_autoload_singleton(AUTOLOAD_NAME, "src/Globals.gd")
+	add_autoload_singleton(AUTOLOAD_NAME, "src/NetworkManager.gd")
 
 
 func _disable_plugin() -> void:
