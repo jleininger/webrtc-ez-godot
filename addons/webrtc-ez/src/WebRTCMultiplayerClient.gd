@@ -10,18 +10,26 @@ func _init():
 	self.offer_received.connect(_offer_received)
 	self.answer_received.connect(_answer_received)
 	self.candidate_recieved.connect(_candidate_received)
-	
+	self.connected.connect(_connected)
+	self.disconnected.connect(_disconnected)
+
 func start(url: String = server_url, lobby: String = "", mesh: bool = true):
 	stop()
 	super.connect_to_url(url)
-	
+
 func stop():
 	multiplayer.multiplayer_peer = null
 	rtc_mp.close()
-	
+
 func full_stop():
 	stop()
 	super.close()
+
+func _connected(id: int):
+	NetworkManager.online = true
+
+func _disconnected():
+	NetworkManager.online = false
 
 func _joined_lobby(id: int, use_mesh: bool, lobbyId: String):
 	if use_mesh:
@@ -33,9 +41,8 @@ func _joined_lobby(id: int, use_mesh: bool, lobbyId: String):
 	multiplayer.multiplayer_peer = rtc_mp
 
 func _peer_connected(peer_id: int):
-	NetworkManager.single_player = false
 	_create_peer(peer_id)
-	
+
 func _create_peer(id: int):
 	var peer = WebRTCPeerConnection.new()
 	peer.initialize({
@@ -46,11 +53,11 @@ func _create_peer(id: int):
 	rtc_mp.add_peer(peer, id)
 	if id < rtc_mp.get_unique_id():
 		peer.create_offer()
-	
+
 func _offer_created(type, data, id):
 	if not rtc_mp.has_peer(id):
 		return
-		
+
 	rtc_mp.get_peer(id).connection.set_local_description(type, data)
 	if type == "offer":
 		self.send_offer(id, data)
@@ -67,7 +74,7 @@ func _offer_received(id: int, offer: String):
 func _answer_received(id: int, answer: String):
 	if rtc_mp.has_peer(id):
 		rtc_mp.get_peer(id).connection.set_remote_description("answer", answer)
-	
+
 func _candidate_received(id: int, mid: String, index: int, sdp: String):
 	if rtc_mp.has_peer(id):
 		rtc_mp.get_peer(id).connection.add_ice_candidate(mid, index, sdp)

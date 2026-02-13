@@ -13,7 +13,8 @@ enum MessageType {
 	OFFER,
 	ANSWER,
 	CANDIDATE,
-	ERROR
+	ERROR,
+	PING
 }
 
 var ws: WebSocketPeer = WebSocketPeer.new()
@@ -37,7 +38,7 @@ func connect_to_url(url: String) -> void:
 	close()
 	ws.connect_to_url(url)
 	set_process(true)
-	
+
 func close():
 	ws.close()
 
@@ -56,13 +57,13 @@ func _process(_delta):
 		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 		disconnected.emit()
 		set_process(false) # Stop processing.
-		
+
 func parse_message(packet: PackedByteArray):
 	var packet_data = JSON.parse_string(packet.get_string_from_utf8())
 	var msg_type = str(packet_data["type"]).to_int()
 	var id = str(packet_data["id"]).to_int()
 	var data = packet_data["data"]
-	
+
 	if msg_type == MessageType.CONNECTED:
 		connected.emit(id)
 	elif msg_type == MessageType.LOBBY_JOINED:
@@ -89,21 +90,24 @@ func send_message(type: int, id: int, data: String = ""):
 		"id": id,
 		"data": data
 	}))
-	
+
 func join_lobby(lobbyId: String) -> void:
 	send_message(MessageType.JOIN_LOBBY, 0, lobbyId)
-	
+
 func leave_lobby():
 	send_message(MessageType.LEAVE_LOBBY, 0)
-	
+
 func remove_from_lobby(lobby_id: String, player_id: int):
 	send_message(MessageType.REMOVE_PLAYER, player_id, lobby_id)
 
 func send_offer(id, offer):
 	return send_message(MessageType.OFFER, id, offer)
-	
+
 func send_answer(id, answer):
 	return send_message(MessageType.ANSWER, id, answer)
 
 func send_candidate(id, mid, index, sdp):
 	return send_message(MessageType.CANDIDATE, id, "\n%s\n%d\n%s" % [mid, index, sdp])
+
+func send_ping():
+	send_message(MessageType.PING, 0)
